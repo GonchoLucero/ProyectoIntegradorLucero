@@ -1,19 +1,18 @@
 package com.example.techlab.service;
 
 import java.util.List;
-import java.util.Optional;
 import org.springframework.stereotype.Service;
 import com.example.techlab.entity.Producto;
 import com.example.techlab.exception.ProductNotFoundException;
-import com.example.techlab.repository.ProductoRepository;
+import com.example.techlab.repository.ProductRepository;
 
 @Service
 public class ProductService {
 
-    private final ProductoRepository repositoryJpa;
+    private final ProductRepository repository;
 
-    public ProductService(ProductoRepository repositoryJpa) {
-        this.repositoryJpa = repositoryJpa;
+    public ProductService(ProductRepository repository) {
+        this.repository = repository;
     }
 
     public Producto agregarProducto(Producto producto){
@@ -29,11 +28,15 @@ public class ProductService {
             throw new IllegalArgumentException("El stock no puede ser negativo");
         }
 
-        return this.repositoryJpa.save(producto);
+        Long nextId = (long) (repository.listarProductos().size() + 1);
+        producto.setId(nextId);
+
+        repository.agregarProducto(producto);
+        return producto;
     }
 
     public List<Producto> listarProductos() {
-        return this.repositoryJpa.findAll();
+        return this.repository.listarProductos();
     }
 
     public List<Producto> buscarProducto(String busqueda) {
@@ -41,10 +44,7 @@ public class ProductService {
             throw new IllegalArgumentException("El término de búsqueda no puede estar vacío");
         }
 
-        List<Producto> todosLosProductos = this.repositoryJpa.findAll();
-        List<Producto> encontrados = todosLosProductos.stream()
-                .filter(producto -> producto.contieneNombre(busqueda))
-                .toList();
+        List<Producto> encontrados = this.repository.buscarProducto(busqueda);
 
         if (encontrados.isEmpty()) {
             throw new ProductNotFoundException(busqueda);
@@ -58,13 +58,13 @@ public class ProductService {
             throw new IllegalArgumentException("El ID no puede ser nulo");
         }
 
-        Optional<Producto> encontrado = this.repositoryJpa.findById(id);
+        Producto encontrado = this.repository.buscarPorId(id);
 
-        if (encontrado.isEmpty()) {
+        if (encontrado == null) {
             throw new ProductNotFoundException(id.toString());
         }
 
-        return encontrado.get();
+        return encontrado;
     }
 
     public Producto editarProducto(Long id, Double nuevoPrecio){
@@ -75,12 +75,12 @@ public class ProductService {
         Producto encontrado = this.buscarPorId(id);
         encontrado.setPrecio(nuevoPrecio);
 
-        return this.repositoryJpa.save(encontrado);
+        return encontrado;
     }
 
     public Producto eliminarProducto(Long id) {
         Producto encontrado = this.buscarPorId(id);
-        this.repositoryJpa.delete(encontrado);
+        this.repository.eliminarProducto(encontrado);
 
         return encontrado;
     }
