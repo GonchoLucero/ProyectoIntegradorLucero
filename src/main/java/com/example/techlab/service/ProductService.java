@@ -17,7 +17,6 @@ public class ProductService {
     }
 
     public Producto agregarProducto(Producto producto){
-        // Validaciones de negocio antes de guardar
         if (producto.getNombre() == null || producto.getNombre().trim().isEmpty()) {
             throw new IllegalArgumentException("El nombre del producto no puede estar vacío");
         }
@@ -66,16 +65,6 @@ public class ProductService {
         }
 
         return encontrado.get();
-    }
-
-    // Versión alternativa más concisa usando orElseThrow
-    public Producto buscarPorIdv2(Long id) {
-        if (id == null) {
-            throw new IllegalArgumentException("El ID no puede ser nulo");
-        }
-
-        return this.repositoryJpa.findById(id)
-                .orElseThrow(() -> new ProductNotFoundException(id.toString()));
     }
 
     public Producto editarProducto(Long id, Double nuevoPrecio){

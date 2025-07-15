@@ -14,7 +14,6 @@ public class Producto {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    // wrapper
     private Long id;
 
     private String nombre;
@@ -23,10 +22,7 @@ public class Producto {
     private int cantidadAComprar;
     private String description;
 
-    // El constructor vacio es necesario si usamos la clase para recibir datos con @RequestBody
-    public Producto() {
-
-    }
+    public Producto() {}
 
     public Producto(String nombre, double precio, int stock) {
         this.nombre = nombre;
@@ -45,18 +41,10 @@ public class Producto {
                 Stock: %s
                 """, this.id, this.nombre, this.precio, this.stock);
         System.out.println("#########################");
-
-//        System.out.println("Id: " + this.id);
-//        System.out.println("Nombre: " + this.nombre);
-//        System.out.println("Precio: " + this.precio);
-//        System.out.println("Stock: " + this.stock);
     }
 
     public boolean contieneNombre(String busqueda){
         String nombreMinuscula = this.nombre.toLowerCase();
-        // TODO: agregar una forma de reemplazar todas las vocales con acento por las vocales sin acento
-        // a checkear: https://docs.oracle.com/javase/8/docs/api/java/text/Normalizer.html
-        // a checkear: nombreMinuscula.replaceAll("á", "a");
         return nombreMinuscula.contains(busqueda.toLowerCase());
     }
 

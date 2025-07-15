@@ -5,7 +5,6 @@ import lombok.Setter;
 
 @Getter
 @Setter
-// incluso pueden usar records (a buscar)
 public class ProductoDTO {
     private Long id;
 
