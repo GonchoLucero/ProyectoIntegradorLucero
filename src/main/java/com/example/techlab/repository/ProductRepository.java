@@ -6,13 +6,7 @@ import org.springframework.stereotype.Repository;
 import com.example.techlab.entity.Producto;
 
 @Repository
-// Hacemos operaciones principalmente de:
-// * filtrado
-// * ordenamiento
-// * paginado
-// * modificaciones de datos
 public class ProductRepository {
-    // "BASE DE DATOS" en memoria
     private final ArrayList<Producto> productos;
 
     public ProductRepository() {
@@ -44,12 +38,10 @@ public class ProductRepository {
 
     public Producto buscarPorId(Long id) {
         for (Producto producto : productos){
-            if (producto.getId() == id){
+            if (producto.getId().equals(id)){
                 return producto;
             }
         }
-
-        // si llega aca es porque no encontro el producto
         return null;
     }
 

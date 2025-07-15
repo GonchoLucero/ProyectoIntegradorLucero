@@ -1,45 +1,53 @@
 package com.example.techlab.service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import javax.swing.text.html.Option;
 import org.springframework.stereotype.Service;
-import com.example.techlab.dto.ProductResponseDTO;
 import com.example.techlab.entity.Producto;
 import com.example.techlab.exception.ProductNotFoundException;
-import com.example.techlab.repository.ProductRepository;
 import com.example.techlab.repository.ProductoRepository;
 
 @Service
 public class ProductService {
 
-    private final ProductRepository repository;
-    private ProductoRepository repositoryJpa;
+    private final ProductoRepository repositoryJpa;
 
-    public ProductService(ProductRepository repository, ProductoRepository repositoryJpa) {
-        this.repository = repository;
+    public ProductService(ProductoRepository repositoryJpa) {
         this.repositoryJpa = repositoryJpa;
     }
 
     public Producto agregarProducto(Producto producto){
-        // Podriamos hacer validaciones de negocio antes de enviar el producto a guardar
+        // Validaciones de negocio antes de guardar
+        if (producto.getNombre() == null || producto.getNombre().trim().isEmpty()) {
+            throw new IllegalArgumentException("El nombre del producto no puede estar vacío");
+        }
 
-        Producto productoGuardado = this.repositoryJpa.save(producto);
+        if (producto.getPrecio() <= 0) {
+            throw new IllegalArgumentException("El precio debe ser mayor a 0");
+        }
 
-        return productoGuardado;
+        if (producto.getStock() < 0) {
+            throw new IllegalArgumentException("El stock no puede ser negativo");
+        }
+
+        return this.repositoryJpa.save(producto);
     }
 
     public List<Producto> listarProductos() {
-//    return this.repository.listarProductos();
         return this.repositoryJpa.findAll();
     }
 
-    // GET
-    public ArrayList<Producto> buscarProducto(String busqueda) {
-        ArrayList<Producto> encontrados = this.repository.buscarProducto(busqueda);
+    public List<Producto> buscarProducto(String busqueda) {
+        if (busqueda == null || busqueda.trim().isEmpty()) {
+            throw new IllegalArgumentException("El término de búsqueda no puede estar vacío");
+        }
 
-        if (encontrados.isEmpty()){
+        List<Producto> todosLosProductos = this.repositoryJpa.findAll();
+        List<Producto> encontrados = todosLosProductos.stream()
+                .filter(producto -> producto.contieneNombre(busqueda))
+                .toList();
+
+        if (encontrados.isEmpty()) {
             throw new ProductNotFoundException(busqueda);
         }
 
@@ -47,39 +55,44 @@ public class ProductService {
     }
 
     public Producto buscarPorId(Long id) {
-//    Producto encontrado = this.repository.buscarPorId(id);
-        Optional<Producto> encontrado = this.repositoryJpa.findById(id);
-        // Optinal: es una cajita para enviar datos
+        if (id == null) {
+            throw new IllegalArgumentException("El ID no puede ser nulo");
+        }
 
-        if (encontrado.isEmpty()){
+        Optional<Producto> encontrado = this.repositoryJpa.findById(id);
+
+        if (encontrado.isEmpty()) {
             throw new ProductNotFoundException(id.toString());
         }
 
         return encontrado.get();
     }
 
-    // funciona igual que <buscarPorId> pero es mas lindo
+    // Versión alternativa más concisa usando orElseThrow
     public Producto buscarPorIdv2(Long id) {
-        return this.repositoryJpa.findById(id).orElseThrow(() -> new ProductNotFoundException(id.toString()));
+        if (id == null) {
+            throw new IllegalArgumentException("El ID no puede ser nulo");
+        }
+
+        return this.repositoryJpa.findById(id)
+                .orElseThrow(() -> new ProductNotFoundException(id.toString()));
     }
 
     public Producto editarProducto(Long id, Double nuevoPrecio){
+        if (nuevoPrecio == null || nuevoPrecio <= 0) {
+            throw new IllegalArgumentException("El precio debe ser mayor a 0");
+        }
+
         Producto encontrado = this.buscarPorId(id);
-
         encontrado.setPrecio(nuevoPrecio);
-        // el save sirve para actualizar entidades existentes
-        this.repositoryJpa.save(encontrado);
 
-        return encontrado;
+        return this.repositoryJpa.save(encontrado);
     }
 
-    // DELETE
     public Producto eliminarProducto(Long id) {
         Producto encontrado = this.buscarPorId(id);
-
         this.repositoryJpa.delete(encontrado);
 
         return encontrado;
     }
-
 }
